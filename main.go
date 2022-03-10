@@ -37,6 +37,7 @@ const (
 
 //Connect to LDAP server
 func Connect(c *config) (*ldap.Conn,error){
+	fmt.Println(c.Fqdn)
     l, err := ldap.DialURL(fmt.Sprintf("ldap://%s:389", c.Fqdn))
     if err != nil {
         return nil, err
@@ -60,6 +61,7 @@ func BindAndSearch(l *ldap.Conn, c *config, u *user) (*ldap.SearchResult, error)
         []string{},
         nil,
     )
+	
     result, err := l.Search(searchReq)
     if err != nil {
         return nil, fmt.Errorf("Search Error: %s", err)
@@ -126,7 +128,9 @@ func Process(w http.ResponseWriter, r *http.Request){
 
 		l, err := Connect(&C)
 		if err != nil {
-			log.Fatal(err)
+			// log.Fatal(err)
+			// fmt.Fprint(w, "Error %v", err)
+			http.Error(w, "Error", http.StatusBadRequest)
 			break
 		}
 		defer l.Close()
@@ -151,8 +155,6 @@ func Process(w http.ResponseWriter, r *http.Request){
 	default:
 		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}	
-
-
 }
 
 func main(){
