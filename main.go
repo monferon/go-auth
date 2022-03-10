@@ -80,8 +80,6 @@ func ReadConfig() (*config, error) {
 		return nil,err
 	}
 
-
-
 	err = viper.Unmarshal(&C)
 	if err != nil {
 		return nil,err
@@ -100,7 +98,7 @@ func Process(w http.ResponseWriter, r *http.Request){
 			fmt.Fprintf(w, "ParseForm() err: %v", err)
 			return
 		}
-		fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", r.)
+		fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", r.Body)
 		name := r.FormValue("name")
 		password := r.FormValue("address")
 		fmt.Fprintf(w, "Name = %s\n", name)
