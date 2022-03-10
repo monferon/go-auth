@@ -25,15 +25,13 @@ type config struct{
 
 var C config
 
-
-
-const (
-	BindUsername = "riemann"
-	BindPassword = "password"
-	FQDN = "ldap.forumsys.com"
-	BaseDN = "ou=mathematicians,dc=example,dc=com"
-	Filter = "(objectClass=*)"
-)
+// const (
+// 	BindUsername = "riemann"
+// 	BindPassword = "password"
+// 	FQDN = "ldap.forumsys.com"
+// 	BaseDN = "ou=mathematicians,dc=example,dc=com"
+// 	Filter = "(objectClass=*)"
+// )
 
 //Connect to LDAP server
 func Connect(c *config) (*ldap.Conn,error){
@@ -48,7 +46,7 @@ func Connect(c *config) (*ldap.Conn,error){
 // Normal Bind and Search
 func BindAndSearch(l *ldap.Conn, c *config, u *user) (*ldap.SearchResult, error){
 	
-	l.Bind(BindUsername, BindPassword)
+	l.Bind(u.Name, u.Password)
 
     searchReq := ldap.NewSearchRequest(
         c.Basedn,
@@ -92,25 +90,6 @@ func ReadConfig() (*config, error) {
 
 	return &C, nil
 }
-
-// func ldaper(){
-// 	l, err := Connect(&C)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	defer l.Close()
-
-// 	result, err := BindAndSearch(l,&C)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	fmt.Println(result.Entries[0])
-// 	responseString := string(result.Entries[0].DN)
-//     fmt.Fprint(w, responseString)
-// 	fmt.Println(&C)
-// 	fmt.Println("Authed!")
-// }
 
 func Process(w http.ResponseWriter, r *http.Request){
 	
