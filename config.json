@@ -1,0 +1,6 @@
+{
+  "port": 8080,
+  "fqdn": "dap.forumsys.com",
+  "basedn": "ou=mathematicians,dc=example,dc=com",
+  "filter": "(objectClass=*)"
+}
