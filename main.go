@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -24,6 +25,8 @@ type config struct{
 
 var C config
 
+
+
 const (
 	BindUsername = "riemann"
 	BindPassword = "password"
@@ -42,7 +45,7 @@ func Connect(c *config) (*ldap.Conn,error){
 }
 
 // Normal Bind and Search
-func BindAndSearch(l *ldap.Conn, c *config) (*ldap.SearchResult, error){
+func BindAndSearch(l *ldap.Conn, c *config, u *user) (*ldap.SearchResult, error){
 	
 	l.Bind(BindUsername, BindPassword)
 
@@ -88,41 +91,68 @@ func ReadConfig() (*config, error) {
 	return &C, nil
 }
 
+// func ldaper(){
+// 	l, err := Connect(&C)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer l.Close()
+
+// 	result, err := BindAndSearch(l,&C)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	fmt.Println(result.Entries[0])
+// 	responseString := string(result.Entries[0].DN)
+//     fmt.Fprint(w, responseString)
+// 	fmt.Println(&C)
+// 	fmt.Println("Authed!")
+// }
+
 func Process(w http.ResponseWriter, r *http.Request){
 	
 	switch r.Method{
 	case "GET":
 		fmt.Fprintf(w, "Sorry! I am can read only POST request")
 	case "POST":
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() err: %v", err)
+
+		var U user
+		err := json.NewDecoder(r.Body).Decode(&U)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", r.Body)
-		name := r.FormValue("name")
-		password := r.FormValue("address")
-		fmt.Fprintf(w, "Name = %s\n", name)
-		fmt.Fprintf(w, "Password = %s\n", password)
+
+		l, err := Connect(&C)
+		if err != nil {
+			log.Fatal(err)
+			break
+		}
+		defer l.Close()
+		
+		result, err := BindAndSearch(l,&C, &U)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(U)
+		fmt.Println(result.Entries[0])
+		responseString := string(result.Entries[0].DN)
+		fmt.Fprint(w, responseString)
+		fmt.Println(&C)
+		fmt.Println("Authed!")
+
+		// fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", r.Body)
+		// // name := r.FormValue("name")
+		// // password := r.FormValue("address")
+		// fmt.Fprintf(w, "Name = %s\n", U.Name)
+		// fmt.Fprintf(w, "Password = %s\n", U.Password)
+
 	default:
 		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}	
 
-	// l, err := Connect(&C)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer l.Close()
 
-	// result, err := BindAndSearch(l,&C)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println(result.Entries[0])
-	// responseString := string(result.Entries[0].DN)
-    // fmt.Fprint(w, responseString)
-	// fmt.Println(&C)
-	// fmt.Println("Authed!")
 }
 
 func main(){
@@ -131,6 +161,7 @@ func main(){
 		log.Fatal(err)
 	}
 	fmt.Println(conf)
+
 	http.HandleFunc("/", Process)
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal(err)
