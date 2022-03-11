@@ -1,4 +1,5 @@
 {
+  "address": "http://localhost:8082/",
   "port": 8080,
   "fqdn": "dap.forumsys.com",
   "basedn": "ou=mathematicians,dc=example,dc=com",
